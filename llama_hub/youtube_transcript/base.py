@@ -4,14 +4,7 @@ from typing import Any, List, Optional
 
 from llama_index.readers.base import BaseReader
 from llama_index.readers.schema.base import Document
-
-# regular expressions to match the different syntax of YouTube links
-YOUTUBE_URL_PATTERNS = [
-    r"^https?://(?:www\.)?youtube\.com/watch\?v=([\w-]+)",
-    r"^https?://(?:www\.)?youtube\.com/embed/([\w-]+)",
-    r"^https?://youtu\.be/([\w-]+)",  # youtu.be does not use www
-]
-
+from llama_hub.youtube_transcript.utils import YOUTUBE_URL_PATTERNS
 
 class YoutubeTranscriptReader(BaseReader):
     """Youtube Transcript reader."""
@@ -57,9 +50,8 @@ class YoutubeTranscriptReader(BaseReader):
             transcript_chunks = YouTubeTranscriptApi.get_transcript(
                 video_id, languages=languages
             )
-            transcript = ""
-            for chunk in transcript_chunks:
-                transcript = transcript + chunk["text"] + "\n"
+            chunk_text = [chunk["text"] for chunk in transcript_chunks]
+            transcript = "\n".join(chunk_text)
             results.append(Document(text=transcript, extra_info={"video_id": video_id}))
         return results
 
@@ -74,12 +66,3 @@ class YoutubeTranscriptReader(BaseReader):
         # return None if no match is found
         return None
 
-    @classmethod
-    def is_youtube_video(url: str) -> bool:
-        """
-        Returns whether the passed in `url` matches the various YouTube URL formats
-        """
-        for pattern in YOUTUBE_URL_PATTERNS:
-            if re.search(pattern, url):
-                return True
-        return False

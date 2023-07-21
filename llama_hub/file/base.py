@@ -9,24 +9,6 @@ from llama_index.readers.schema.base import Document
 
 from llama_hub.file.simple_file_reader import SimpleFileReader
 
-DEFAULT_FILE_EXTRACTOR: Dict[str, str] = {
-    ".pdf": "PDFReader",
-    ".docx": "DocxReader",
-    ".pptx": "PptxReader",
-    ".jpg": "ImageReader",
-    ".png": "ImageReader",
-    ".jpeg": "ImageReader",
-    ".mp3": "AudioTranscriber",
-    ".mp4": "AudioTranscriber",
-    ".csv": "PagedCSVReader",
-    ".epub": "EpubReader",
-    ".md": "MarkdownReader",
-    ".mbox": "MboxReader",
-    ".eml": "UnstructuredReader",
-    ".html": "UnstructuredReader",
-    ".json": "JSONReader",
-}
-
 
 class SimpleDirectoryReader(BaseReader):
     """Simple directory reader.
@@ -75,7 +57,7 @@ class SimpleDirectoryReader(BaseReader):
         self.num_files_limit = num_files_limit
 
         self.input_files = self._add_files(self.input_dir)
-        self.file_extractor = file_extractor or DEFAULT_FILE_EXTRACTOR
+        self.file_extractor = file_extractor
         self.file_metadata = file_metadata
 
     def _add_files(self, input_dir: Path) -> List[Path]:
@@ -131,26 +113,13 @@ class SimpleDirectoryReader(BaseReader):
             if self.file_metadata is not None:
                 metadata = self.file_metadata(str(input_file))
 
-            if input_file.suffix in self.file_extractor:
-                reader = self.file_extractor[input_file.suffix]
-
-                if isinstance(reader, str):
-                    from llama_hub.utils import import_loader
-
-                    reader = import_loader(reader)()
-
-                simple_file_reader = SimpleFileReader(
-                    input_file=input_file,
-                    reader=reader,
-                    errors=self.errors,
-                    metadata=metadata,
-                )
-                new_documents = SimpleFileReader().load_data(input_file)
-            else:
-                simple_file_reader = SimpleFileReader(
-                    input_file, errors=self.errors, file_metadata=self.file_metadata
-                )
-                new_documents = simple_file_reader.load_data()
+            simple_file_reader = SimpleFileReader(
+                input_file,
+                file_extractor=self.file_extractor,
+                errors=self.errors,
+                metadata=metadata,
+            )
+            new_documents = simple_file_reader.load_data()
 
             documents.extend(new_documents)
         return documents

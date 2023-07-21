@@ -9,16 +9,16 @@ import random
 import tempfile
 from hashlib import md5
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urlparse
-from urllib.request import Request, _UrlopenRet, urlopen
+from urllib.request import Request, urlopen
 
-from llama_index import SimpleDirectoryReader, download_loader
 from llama_index.readers.base import BaseReader
 from llama_index.readers.schema.base import Document
 
 from llama_hub.file.audio import AudioTranscriber
-from llama_hub.youtube_transcript.base import (YoutubeTranscriptReader,
+from llama_hub.file.simple_file_reader import SimpleFileReader
+from llama_hub.youtube_transcript import (YoutubeTranscriptReader,
                                                is_youtube_video)
 
 
@@ -47,20 +47,16 @@ class RemoteReader(BaseReader):
                 text = "\n\n".join([str(el.decode("utf-8-sig")) for el in response])
                 documents = [Document(text=text, extra_info=extra_info)]
             case "audio/mp3" | "audio/mp4":
-                with self._local_file_from_response(url, response) as (filepath, _):
+                with self._local_file_from_response(url, response) as filepath:
                     documents = AudioTranscriber(filepath)
             case "video/youtube":
                 # TODO should we have another langauge, like english / french?
                 documents = YoutubeTranscriptReader().load_data([url])
             case _:
-                with self._local_file_from_remote_url(response) as (_, directory):
-                    file_reader = None
-                    if self.file_extractor:
-                        file_extractor
-                    loader = SimpleDirectoryReader(
-                        directory,
-                        file_metadata=(lambda _: extra_info),
-                        file_extractor=self.file_extractor,
+                with self._local_file_from_remote_url(response) as filepath:
+                    loader = SimpleFileReader(
+                        filepath,
+                        metadata=extra_info
                     )
                     documents = loader.load_data()
         return documents
@@ -76,7 +72,7 @@ class RemoteReader(BaseReader):
             filepath = f"{temp_dir}/{RemoteReader._temp_filename_for_url(url)}"
             with open(filepath, "wb") as output:
                 output.write(response.read())
-                yield filepath, temp_dir
+                yield filepath
 
     @classmethod
     def _generate_filename_for_url(url: str) -> str:
