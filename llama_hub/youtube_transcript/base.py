@@ -26,16 +26,6 @@ class YoutubeTranscriptReader(BaseReader):
             )
         super().__init__()
 
-    @staticmethod
-    def _extract_video_id(yt_link) -> Optional[str]:
-        for pattern in YOUTUBE_URL_PATTERNS:
-            match = re.search(pattern, yt_link)
-            if match:
-                return match.group(1)
-
-        # return None if no match is found
-        return None
-
     def load_data(
         self,
         ytlinks: List[str],
@@ -74,11 +64,22 @@ class YoutubeTranscriptReader(BaseReader):
         return results
 
 
-def is_youtube_video(url: str) -> bool:
-    """
-    Returns whether the passed in `url` matches the various YouTube URL formats
-    """
-    for pattern in YOUTUBE_URL_PATTERNS:
-        if re.search(pattern, url):
-            return True
-    return False
+    @staticmethod
+    def _extract_video_id(yt_link) -> Optional[str]:
+        for pattern in YOUTUBE_URL_PATTERNS:
+            match = re.search(pattern, yt_link)
+            if match:
+                return match.group(1)
+
+        # return None if no match is found
+        return None
+
+    @classmethod
+    def is_youtube_video(url: str) -> bool:
+        """
+        Returns whether the passed in `url` matches the various YouTube URL formats
+        """
+        for pattern in YOUTUBE_URL_PATTERNS:
+            if re.search(pattern, url):
+                return True
+        return False
