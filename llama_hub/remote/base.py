@@ -51,7 +51,7 @@ class RemoteReader(BaseReader):
                     documents = AudioTranscriber(filepath)
             case "video/youtube":
                 # TODO should we have another langauge, like english / french?
-                documents = YoutubeTranscriptReader().load_data([url])
+                documents = YoutubeTranscriptReader(extra_info=extra_info).load_data([url])
             case _:
                 with self._local_file_from_remote_url(response) as filepath:
                     loader = SimpleFileReader(

@@ -1,6 +1,6 @@
 """Simple Reader that reads transcript of youtube video."""
 import re
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from llama_index.readers.base import BaseReader
 from llama_index.readers.schema.base import Document
@@ -9,7 +9,7 @@ from llama_hub.youtube_transcript.utils import YOUTUBE_URL_PATTERNS
 class YoutubeTranscriptReader(BaseReader):
     """Youtube Transcript reader."""
 
-    def __init__(self) -> None:
+    def __init__(self, extra_info: Optional[Dict] = {},) -> None:
         try:
             import youtube_transcript_api
         except ImportError:
@@ -18,6 +18,7 @@ class YoutubeTranscriptReader(BaseReader):
                 "Please `pip install youtube_transcript_api` to use this Reader"
             )
         super().__init__()
+        self.extra_info = extra_info
 
     def load_data(
         self,
@@ -52,7 +53,9 @@ class YoutubeTranscriptReader(BaseReader):
             )
             chunk_text = [chunk["text"] for chunk in transcript_chunks]
             transcript = "\n".join(chunk_text)
-            results.append(Document(text=transcript, extra_info={"video_id": video_id}))
+            # Merge in whatever extra info is passed in with the video_id
+            extra_info =  {"video_id": video_id} | self.extra_info
+            results.append(Document(text=transcript, extra_info=extra_info))
         return results
 
 
