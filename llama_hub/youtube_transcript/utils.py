@@ -3,8 +3,8 @@ import re
 # regular expressions to match the different syntax of YouTube links
 YOUTUBE_URL_PATTERNS = [
     r"^https?://(?:www\.)?youtube\.com/watch\?v=([\w-]+)",
-    r"^https?://(?:www\.)?youtube\.com/embed/([\w-]+)",
-    r"^https?://youtu\.be/([\w-]+)",  # youtu.be does not use www
+    r"^https?://(?:www\.)?youtube\.com/embed/([\w-]+)/?",
+    r"^https?://youtu\.be/([\w-]+)/?",  # youtu.be does not use www
 ]
 
 

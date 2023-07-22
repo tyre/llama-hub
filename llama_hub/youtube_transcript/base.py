@@ -6,10 +6,14 @@ from llama_index.readers.base import BaseReader
 from llama_index.readers.schema.base import Document
 from llama_hub.youtube_transcript.utils import YOUTUBE_URL_PATTERNS
 
+
 class YoutubeTranscriptReader(BaseReader):
     """Youtube Transcript reader."""
 
-    def __init__(self, extra_info: Optional[Dict] = {},) -> None:
+    def __init__(
+        self,
+        extra_info: Optional[Dict] = {},
+    ) -> None:
         try:
             import youtube_transcript_api
         except ImportError:
@@ -42,11 +46,11 @@ class YoutubeTranscriptReader(BaseReader):
                 raise ValueError(
                     f"Supplied url {link} is not a supported youtube URL."
                     "Supported formats include:"
-                    "  youtube.com/watch?v=\{video_id\} "
+                    "  youtube.com/watch?v=[your_video_id] "
                     "(with or without 'www.')\n"
-                    "  youtube.com/embed?v=\{video_id\} "
+                    "  youtube.com/embed?v=[your_video_id] "
                     "(with or without 'www.')\n"
-                    "  youtu.be/{video_id\} (never includes www subdomain)"
+                    "  youtu.be/[your_video_id] (never includes www subdomain)"
                 )
             transcript_chunks = YouTubeTranscriptApi.get_transcript(
                 video_id, languages=languages
@@ -54,10 +58,9 @@ class YoutubeTranscriptReader(BaseReader):
             chunk_text = [chunk["text"] for chunk in transcript_chunks]
             transcript = "\n".join(chunk_text)
             # Merge in whatever extra info is passed in with the video_id
-            extra_info =  {"video_id": video_id} | self.extra_info
+            extra_info = {"video_id": video_id} | self.extra_info
             results.append(Document(text=transcript, extra_info=extra_info))
         return results
-
 
     @staticmethod
     def _extract_video_id(yt_link) -> Optional[str]:
@@ -68,4 +71,3 @@ class YoutubeTranscriptReader(BaseReader):
 
         # return None if no match is found
         return None
-
